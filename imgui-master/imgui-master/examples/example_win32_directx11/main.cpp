@@ -79,6 +79,20 @@ int main(int, char**)
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
+
+    int ball_pos_x = 500;
+    int ball_pos_y = 500;
+    int ball_speed = 5;
+    enum ballDirs
+    {
+        NE,
+        NW,
+        SE,
+        SW
+    };
+    ballDirs ball_direction = NE;
+   
+
     // Main loop
     bool done = false;
     while (!done)
@@ -111,41 +125,189 @@ int main(int, char**)
         ImGui::NewFrame();
 
         // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);
+        //if (show_demo_window)
+        //    ImGui::ShowDemoWindow(&show_demo_window);
 
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-        {
-            static float f = 0.0f;
-            static int counter = 0;
+        //{
+        //    static float f = 0.0f;
+        //    static int counter = 0;
 
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+        //    ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);
+        //    ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+        //    ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+        //    ImGui::Checkbox("Another Window", &show_another_window);
 
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+        //    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+        //    ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
+        //    if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+        //        counter++;
+        //    ImGui::SameLine();
+        //    ImGui::Text("counter = %d", counter);
 
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-            ImGui::End();
-        }
+        //    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+        //    ImGui::End();
+        //}
 
         // 3. Show another simple window.
-        if (show_another_window)
+        //if (show_another_window)
+        //{
+        //    ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+        //    ImGui::Text("Hello from another window!\n");
+        //    ImGui::Text("Hello from another window 2!");
+        //    if (ImGui::Button("Close Me"))
+        //        show_another_window = false;
+        //    ImGui::End();
+        //}
+
+        // 4. My playground
+
+        //ImGuiIO& input_output = ImGui::GetIO();
+        //ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+        int n = 0;
+        static float thickness = 3.0f;
+        const ImVec2 p = ImGui::GetCursorScreenPos();
+        static float sz = 36.0f;
+        float x = p.x + 4.0f;
+        float y = p.y + 4.0f;
+        float th = (n == 0) ? 1.0f : thickness;
+        const float spacing = 10.0f;
+        const ImU32 col = ImColor(1.0f, 1.0f, 0.4f, 1.0f);
+        int paddle_y = 150;
+        int paddle_x = 25;
+        int paddle_pos = 20;
+        //float mouse_y = input_output.MousePos.y;
+
+        bool ping_pong = true;
+
+        int ball_size = 15;
+        //int ball_pos_x = 500; przeniesiona poza petle
+        //int ball_pos_y = 500; przeniesiona poza petle
+        int ball_speed_factor = 5;
+
+        //static ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
+
+        if (ping_pong)
         {
-            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                show_another_window = false;
+            ImGui::Begin("Ping Pong", 0, /*flags*/0);
+
+            float window_width = ImGui::GetWindowWidth();
+            float window_height = ImGui::GetWindowHeight();
+            ImVec2 window_position = ImGui::GetWindowPos();
+            ImGui::Text("%f", window_width);
+            ImGui::Text("%f", window_height);
+            ImGui::Text("Window position:");
+            ImGui::Text("X %f", window_position.x);
+            ImGui::Text("Y %f", window_position.y);
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+            float mouse_x = ImGui::GetIO().MousePos.x;
+            float mouse_y = ImGui::GetIO().MousePos.y;
+
+            ImGui::Text("Mouse");
+            ImGui::Text("X %f", mouse_x);
+            ImGui::Text("Y %f", mouse_y);
+
+            //Generate Paddle, min or max in window later
+            draw_list->AddRect(ImVec2(window_position.x + paddle_pos, (mouse_y - (paddle_y / 2))), ImVec2(window_position.x + paddle_pos + paddle_x, mouse_y + (paddle_y / 2)), col, 0.0f, ImDrawFlags_None, th);// x += sz + spacing;
+
+            //Generate Ball
+            draw_list->AddCircleFilled(ImVec2(ball_pos_x, ball_pos_y), ball_size, col, 0);
+
+            /*
+            North east: x++, y--
+            North west: x--, y--
+            South east: x++, y++
+            Sount west: x--, y++
+            */
+
+            //Ball reach bottom
+            if ((ball_pos_y + ball_size) >= (window_position.y + window_height))
+            {
+
+                if (ball_direction == SE)ball_direction = NE;
+                else if (ball_direction == SW)ball_direction = NW;
+
+            }
+            
+            //Ball reach top
+            if ((ball_pos_y - ball_size) <= window_position.y)
+            {
+
+                if (ball_direction == NE)ball_direction = SE;
+                else if (ball_direction == NW)ball_direction = SW;
+
+            }
+
+            //Ball reach right
+            if ((ball_pos_x + ball_size) >= (window_position.x + window_width))
+            {
+
+                if (ball_direction == NE)ball_direction = NW;
+                else if (ball_direction == SE)ball_direction = SW;
+
+            }
+
+            //Ball reach left
+            if ((ball_pos_x - ball_size) <= (window_position.x))
+            {
+
+                ImGui::Text("Game Over");
+
+            }
+
+
+            //Ball reach paddle
+            if (((ball_pos_x - ball_size) < (window_position.x + paddle_pos + paddle_x)) && ((mouse_y - paddle_y/2) < ball_pos_y) && ((mouse_y + paddle_y / 2) > ball_pos_y))
+            {
+
+                //ImGui::Text("Paddle");
+                if (ball_direction == SW)ball_direction = SE;
+                else if (ball_direction == NW)ball_direction = NE;
+
+            }
+
+            //Calculate position
+            switch (ball_direction)
+            {
+            case NE:
+                ball_pos_x+= ball_speed;
+                ball_pos_y-= ball_speed;
+                break;
+            case NW:
+                ball_pos_x-= ball_speed;
+                ball_pos_y-= ball_speed;
+                break;
+            case SE:
+                ball_pos_x+= ball_speed;
+                ball_pos_y+= ball_speed;
+                break;
+            case SW:
+                ball_pos_x-= ball_speed;
+                ball_pos_y+= ball_speed;
+                break;
+            }
+
+                    /*
+                                North east: x++, y--
+                                North west: x--, y--
+                                South east: x++, y++
+                                Sount west: x--, y++
+                                */
+
+
+
+
             ImGui::End();
+
+            //draw_list->AddRectFilled(const ImVec2 & p_min, const ImVec2 & p_max, ImU32 col, float rounding, ImDrawFlags flags)
+            //ImVec2(input_output.MousePos.x, input_output.MousePos.y)
         }
+
+
 
         // Rendering
         ImGui::Render();
